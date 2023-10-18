@@ -35,19 +35,17 @@ export default function Home() {
   const [minMinutes, maxMinutes] = d3.extent(result, r=> minutesToTimeObject(r.Time));
   const [minYear, maxYear] = d3.extent(result , r => r.Year);
 
-  if (minMinutes !== undefined && maxMinutes !== undefined) {
-    yScale = d3.scaleTime([  minMinutes, maxMinutes], [0 + paddingBottom,svgHeight -paddingTop]);
-    console.log('minMinutes: ', yScale(minMinutes))
-    console.log('maxMinutes: ', yScale(maxMinutes))
+  if (minMinutes && maxMinutes) {
+    yScale = d3.scaleTime([ minMinutes, maxMinutes], [0 + paddingBottom,svgHeight -paddingTop]);
   }
-  if (minYear !== undefined && maxYear !== undefined) {
+  if (minYear && maxYear) {
     xScale = d3.scaleLinear([minYear, maxYear], [0 + paddingLeft, svgWidth - paddingRight]);
   }
   
   function selectCircle(selectedIndex: number,  e: React.MouseEvent<SVGCircleElement, MouseEvent>) {
     
     const hoveredCyclist = result.find((x, i) => i === selectedIndex);
-    if (hoveredCyclist !== undefined) {
+    if (hoveredCyclist) {
       setSelectedCyclist(hoveredCyclist);
     }
 
@@ -66,27 +64,26 @@ export default function Home() {
   }
 
   return (
-    <main className="bg-gray-800 h-[100vh] w-full flex flex-col items-center justify-center">
-      <div id='tooltip' className={`bg-slate-400  text-sm  font-bold p-2 absolute rounded text-black select-none pointer-events-none	${tooltipAttrs}`}
-        style={{ top: tooltipPosition.top + 'px', left: tooltipPosition.left + 'px' }}>
-        {selectedCyclist.Name !== '' ? (
+    <main className="bg-gray-800 h-[100vh] w-full flex flex-col items-center justify-center relative overflow-hidden">
+      <div id='tooltip' 
+           data-year={selectedCyclist.Year}
+           className={`bg-slate-400 text-sm font-bold p-2 absolute rounded text-black select-none pointer-events-none ${tooltipAttrs}`}
+           style={{ top: tooltipPosition.top + 'px', left: tooltipPosition.left + 'px' }}
+        >
+        {selectedCyclist.Name !== '' && (
           <>
             <p>{selectedCyclist.Name}: {selectedCyclist.Nationality}</p>
             <p>Year: {selectedCyclist.Year}, Time: {selectedCyclist.Time}</p>
             <p className="mt-2">{selectedCyclist.Doping}</p> 
           </>
-        ) :  (
-          <></>
-        )}
-        
-        
+        )}   
       </div>
-      <div id="wrapper">
-        <div id='title' className="flex flex-col items-center bg-gray-700 mt-2 pt-3">
+      <div id="wrapper ">
+        <div id='title' className="flex flex-col items-center bg-gray-700 pt-3 mb-0 text-white">
           <h1 className="text-3xl">Doping in Professional Bicycle Racing</h1>
           <h2 className="text-xl">35 Fastest times up Alpe d&lsquo;Huez</h2>
         </div>
-        <svg width={svgWidth} height={svgHeight} className="text-white bg-gray-700 ">
+        <svg width={svgWidth} height={svgHeight} className="text-white bg-gray-700">
           <AxisLeft
             yScale={yScale}
             padding={{Bottom: paddingBottom, Left: paddingLeft, Right: paddingRight, Top: paddingTop}}
@@ -108,7 +105,7 @@ export default function Home() {
               cx={xScale(r.Year)}
               dataXvalue={r.Year}
               cy={yScale(minutesToTimeObject(r.Time))}
-              dataYvalue={r.Time}
+              dataYvalue={minutesToTimeObject(r.Time)}
               dopping={r.Doping}
               onMouseEnter={(i: number, e: React.MouseEvent<SVGCircleElement, MouseEvent>) => selectCircle(i, e)}
               onMouseLeave={unselectCircle}
@@ -127,7 +124,7 @@ interface CircleComponentProps {
   cx: number;
   cy: number | undefined;
   dataXvalue: number;
-  dataYvalue: string;
+  dataYvalue: Date;
   dopping: string;
   onMouseEnter: (i: number, e: React.MouseEvent<SVGCircleElement, MouseEvent>) => void;
   onMouseLeave: () => void;
@@ -152,7 +149,7 @@ function CircleComponent({elementIndex, radius, cx, cy, dataXvalue, dataYvalue, 
 
   return (
     <circle 
-      className="transition-all duration-300"
+      className="dot transition-all duration-300"
       r={radius}
       cx={cx}
       data-xvalue={dataXvalue}
